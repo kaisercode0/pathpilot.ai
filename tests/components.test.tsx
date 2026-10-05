@@ -5,6 +5,7 @@ import { RoadmapForm } from "@/components/RoadmapForm";
 import { TaskItem } from "@/components/TaskItem";
 import { ProgressOverview } from "@/components/ProgressOverview";
 import { ErrorMessage } from "@/components/ErrorMessage";
+import { DashboardView } from "@/components/DashboardView";
 import type { Task } from "@/lib/schemas";
 import type { RoadmapProgress } from "@/types/roadmap";
 
@@ -70,6 +71,8 @@ describe("UI Components Tests", () => {
           url: "https://www.typescriptlang.org",
           type: "doc",
           isFree: true,
+          provider: "TypeScript",
+          status: "FREE",
         },
       ],
       tips: "Use interfaces when designing public API contracts.",
@@ -140,6 +143,75 @@ describe("UI Components Tests", () => {
       const retryBtn = screen.getByRole("button", { name: /Retry Request/i });
       fireEvent.click(retryBtn);
       expect(onRetry).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Dashboard Components", () => {
+    const sampleRoadmap = {
+      id: "roadmap-test-1",
+      careerGoal: "Full-Stack AI Developer",
+      title: "Full-Stack AI Developer Pathway",
+      summary: "Comprehensive roadmap for modern AI application engineering.",
+      experienceLevel: "beginner" as const,
+      hoursPerWeek: 15,
+      targetDuration: "3 Months",
+      totalEstimatedHours: 180,
+      isFallback: false,
+      generatedAt: new Date().toISOString(),
+      careerInsights: {
+        inDemandSkills: ["React", "TypeScript", "Python"],
+        recommendedCertifications: ["AWS Cloud Practitioner"],
+        portfolioTips: ["Build 2 full-stack projects"],
+        interviewPrepFocus: ["State management and async flows"],
+        potentialJobTitles: ["Full-Stack AI Developer"],
+      },
+      phases: [
+        {
+          id: "phase-1",
+          phaseNumber: 1,
+          title: "Frontend Foundations",
+          description: "Master React & TypeScript",
+          estimatedWeeks: 4,
+          estimatedHours: 40,
+          tasks: [
+            {
+              id: "t-1",
+              title: "Build Responsive Layouts",
+              description: "Use CSS Flexbox and Grid.",
+              estimatedHours: 6,
+              category: "project" as const,
+              skillsCovered: ["CSS", "HTML"],
+              resources: [],
+              completed: false,
+            },
+          ],
+          milestoneProject: {
+            title: "Portfolio Dashboard",
+            description: "A responsive student dashboard.",
+            deliverables: ["Responsive UI", "Dark mode"],
+            estimatedHours: 20,
+          },
+        },
+      ],
+    };
+
+    it("renders DashboardView with header, cards, and daily focus", () => {
+      const onToggle = vi.fn();
+      const onReset = vi.fn();
+
+      render(
+        <DashboardView
+          roadmap={sampleRoadmap}
+          completedTaskIds={[]}
+          onToggleTask={onToggle}
+          onReset={onReset}
+        />
+      );
+
+      expect(screen.getByText("Full-Stack AI Developer Pathway")).toBeInTheDocument();
+      expect(screen.getAllByText(/12-Day Streak/i)[0]).toBeInTheDocument();
+      expect(screen.getByText(/Today's Focus & Action Plan/i)).toBeInTheDocument();
+      expect(screen.getAllByText("Build Responsive Layouts")[0]).toBeInTheDocument();
     });
   });
 });

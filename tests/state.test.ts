@@ -55,4 +55,35 @@ describe("Roadmap State & Progress Calculations", () => {
     const fullPercentComplete = Math.round((allTaskIds.length / allTasks.length) * 100);
     expect(fullPercentComplete).toBe(100);
   });
+
+  it("generates career-specific Cybersecurity fallback roadmap without generic software engineering topics", () => {
+    const cyberRoadmap = generateCuratedFallbackRoadmap({
+      careerGoal: "Cybersecurity & Security Operations Analyst",
+      currentSkills: ["Computer Networking", "Linux", "Bash"],
+      experienceLevel: "beginner",
+      hoursPerWeek: 12,
+      targetDuration: "6_months",
+      learningStyle: "certification",
+    });
+
+    expect(cyberRoadmap.careerGoal).toBe("Cybersecurity & Security Operations Analyst");
+    expect(cyberRoadmap.phases.length).toBe(6);
+
+    const phaseTitles = cyberRoadmap.phases.map((p) => p.title);
+    expect(phaseTitles[0]).toMatch(/Networking/i);
+    expect(phaseTitles[1]).toMatch(/Security Fundamentals/i);
+    expect(phaseTitles[2]).toMatch(/SOC/i);
+    expect(phaseTitles[3]).toMatch(/Threat Intelligence/i);
+    expect(phaseTitles[4]).toMatch(/Incident Response/i);
+    expect(phaseTitles[5]).toMatch(/Capstone SOC/i);
+
+    const fullText = JSON.stringify(cyberRoadmap).toLowerCase();
+    expect(fullText).not.toContain("react 19");
+    expect(fullText).not.toContain("drizzle orm");
+    expect(fullText).not.toContain("prisma");
+    expect(fullText).toContain("siem");
+    expect(fullText).toContain("wireshark");
+    expect(fullText).toContain("mitre att&ck");
+  });
 });
+

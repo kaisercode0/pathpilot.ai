@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   RoadmapRequestSchema,
   TaskSchema,
-  PhaseSchema,
   RoadmapResponseSchema,
 } from "@/lib/schemas";
 import { generateCuratedFallbackRoadmap } from "@/lib/fallback-roadmaps";

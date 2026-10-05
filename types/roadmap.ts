@@ -7,6 +7,7 @@ import type {
   MilestoneProject,
   CareerInsights,
 } from "@/lib/schemas";
+import { CAREER_ROLES, type RoleFilterCategory } from "@/lib/career-roles";
 
 export type {
   RoadmapRequest,
@@ -34,80 +35,45 @@ export interface CareerPreset {
   id: string;
   name: string;
   careerGoal: string;
+  category: "technical" | "non-technical";
+  filterCategory: RoleFilterCategory;
   suggestedSkills: string[];
+  tools: string[];
   experienceLevel: "beginner" | "intermediate" | "advanced";
   hoursPerWeek: number;
   targetDuration: "1_month" | "3_months" | "6_months" | "12_months";
   learningStyle: "project_based" | "theory_first" | "balanced" | "certification";
   description: string;
   badge: string;
-  iconName: "code" | "cpu" | "cloud" | "database" | "shield" | "sparkles";
+  iconName: "code" | "cpu" | "cloud" | "database" | "shield" | "sparkles" | "design" | "marketing" | "bot" | "writer";
+  totalEstimatedHours: number;
 }
 
-export const CAREER_PRESETS: CareerPreset[] = [
-  {
-    id: "full-stack",
-    name: "Full-Stack Web Developer",
-    careerGoal: "Full-Stack Web Developer (Next.js & TypeScript)",
-    suggestedSkills: ["Basic HTML/CSS", "JavaScript Fundamentals", "Git"],
-    experienceLevel: "beginner",
-    hoursPerWeek: 15,
-    targetDuration: "3_months",
-    learningStyle: "project_based",
-    description: "Master modern frontend, serverless backends, relational databases, and end-to-end full-stack architectures.",
-    badge: "Most Popular",
-    iconName: "code",
-  },
-  {
-    id: "ai-engineer",
-    name: "AI & LLM Application Engineer",
-    careerGoal: "AI Application Engineer (LLMs, LangChain, RAG)",
-    suggestedSkills: ["Python", "Basic APIs", "Linear Algebra basics"],
-    experienceLevel: "intermediate",
-    hoursPerWeek: 12,
-    targetDuration: "3_months",
-    learningStyle: "project_based",
-    description: "Build production AI apps with vector databases, embeddings, retrieval augmented generation, and agentic workflows.",
-    badge: "High Growth",
-    iconName: "cpu",
-  },
-  {
-    id: "cloud-devops",
-    name: "Cloud & DevOps Engineer",
-    careerGoal: "Cloud DevOps & Platform Engineer",
-    suggestedSkills: ["Linux CLI", "Basic Networking", "Python or Go basics"],
-    experienceLevel: "intermediate",
-    hoursPerWeek: 10,
-    targetDuration: "6_months",
-    learningStyle: "balanced",
-    description: "Learn infrastructure as code, container orchestration with Kubernetes, CI/CD pipelines, and AWS/GCP cloud services.",
-    badge: "In Demand",
-    iconName: "cloud",
-  },
-  {
-    id: "data-scientist",
-    name: "Data Scientist & Analyst",
-    careerGoal: "Data Scientist & Analytics Engineer",
-    suggestedSkills: ["Python", "SQL", "Statistics 101"],
-    experienceLevel: "beginner",
-    hoursPerWeek: 10,
-    targetDuration: "3_months",
-    learningStyle: "balanced",
-    description: "Derive actionable intelligence with Pandas, NumPy, SQL data warehouses, statistical modeling, and interactive dashboards.",
-    badge: "High Value",
-    iconName: "database",
-  },
-  {
-    id: "cybersecurity",
-    name: "Cybersecurity Analyst",
-    careerGoal: "Cybersecurity & Security Operations Analyst",
-    suggestedSkills: ["Computer Networking", "Operating Systems", "Bash/Python"],
-    experienceLevel: "beginner",
-    hoursPerWeek: 12,
-    targetDuration: "6_months",
-    learningStyle: "certification",
-    description: "Master threat detection, vulnerability analysis, SIEM log triage, network security, and security compliance frameworks.",
-    badge: "Critical Role",
-    iconName: "shield",
-  },
-];
+export const CAREER_PRESETS: CareerPreset[] = Object.values(CAREER_ROLES).map((role) => {
+  let iconName: CareerPreset["iconName"] = "sparkles";
+  if (role.filterCategory === "cybersecurity") iconName = "shield";
+  else if (role.filterCategory === "infrastructure") iconName = "cloud";
+  else if (role.filterCategory === "ai-data") iconName = "cpu";
+  else if (role.filterCategory === "software") iconName = "code";
+  else if (role.filterCategory === "design") iconName = "design";
+  else if (role.filterCategory === "hardware-robotics") iconName = "bot";
+  else if (role.filterCategory === "marketing-content") iconName = "marketing";
+
+  return {
+    id: role.id,
+    name: role.title,
+    careerGoal: role.title,
+    category: role.category,
+    filterCategory: role.filterCategory,
+    suggestedSkills: role.skills.slice(0, 4),
+    tools: role.tools,
+    experienceLevel: role.defaultDifficulty,
+    hoursPerWeek: role.weeklyHours,
+    targetDuration: role.recommendedDuration,
+    learningStyle: role.filterCategory === "cybersecurity" ? "certification" : "balanced",
+    description: role.description,
+    badge: role.category === "technical" ? "Technical" : "Non-Technical",
+    iconName,
+    totalEstimatedHours: role.totalEstimatedHours,
+  };
+});

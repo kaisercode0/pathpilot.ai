@@ -1,0 +1,95 @@
+// Prisma schema for PathPilot PostgreSQL Database
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  email     String?   @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  roadmaps  Roadmap[]
+}
+
+model CareerRole {
+  id          String    @id
+  title       String
+  category    String
+  description String
+  skills      Json
+  degree      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  roadmaps    Roadmap[]
+}
+
+model Roadmap {
+  id              String            @id @default(cuid())
+  userId          String?
+  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  careerRoleId    String?
+  careerRole      CareerRole?       @relation(fields: [careerRoleId], references: [id], onDelete: SetNull)
+  goal            String
+  currentSkills   Json
+  experienceLevel String
+  hoursPerWeek    Int
+  targetDuration  String
+  roadmapData     Json
+  isFallback      Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  steps           RoadmapStep[]
+  feedbacks       RoadmapFeedback[]
+  generationLogs  GenerationLog[]
+}
+
+model RoadmapStep {
+  id          String   @id @default(cuid())
+  roadmapId   String
+  roadmap     Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  stepNumber  Int
+  title       String
+  description String
+  duration    String
+  skills      Json
+  projects    Json
+  resources   Json
+  createdAt   DateTime @default(now())
+}
+
+model Resource {
+  id        String   @id @default(cuid())
+  title     String
+  url       String
+  provider  String
+  type      String
+  skill     String?
+  isFree    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model GenerationLog {
+  id           String   @id @default(cuid())
+  roadmapId    String?
+  roadmap      Roadmap? @relation(fields: [roadmapId], references: [id], onDelete: SetNull)
+  provider     String
+  status       String
+  errorMessage String?
+  createdAt    DateTime @default(now())
+}
+
+model RoadmapFeedback {
+  id        String   @id @default(cuid())
+  roadmapId String
+  roadmap   Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  rating    Int
+  feedback  String?
+  createdAt DateTime @default(now())
+}

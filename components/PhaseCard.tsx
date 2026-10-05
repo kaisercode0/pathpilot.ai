@@ -10,7 +10,6 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CheckIcon,
-  SparklesIcon,
 } from "./icons/Icons";
 
 interface PhaseCardProps {

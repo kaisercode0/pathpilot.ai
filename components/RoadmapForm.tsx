@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { RoadmapRequestSchema, type RoadmapRequest } from "@/lib/schemas";
-import { SparklesIcon, ClockIcon, TargetIcon, LayersIcon, AlertCircleIcon } from "./icons/Icons";
+import { SparklesIcon, ClockIcon, TargetIcon, AlertCircleIcon } from "./icons/Icons";
 
 interface RoadmapFormProps {
   onSubmit: (data: RoadmapRequest) => void;
@@ -11,17 +11,30 @@ interface RoadmapFormProps {
 }
 
 export function RoadmapForm({ onSubmit, isLoading, initialValues }: RoadmapFormProps) {
-  const [careerGoal, setCareerGoal] = useState("");
-  const [currentSkills, setCurrentSkills] = useState("");
-  const [experienceLevel, setExperienceLevel] = useState<"beginner" | "intermediate" | "advanced">("beginner");
-  const [hoursPerWeek, setHoursPerWeek] = useState(15);
-  const [targetDuration, setTargetDuration] = useState<"1_month" | "3_months" | "6_months" | "12_months">("3_months");
-  const [learningStyle, setLearningStyle] = useState<"project_based" | "theory_first" | "balanced" | "certification">("balanced");
+  const [careerGoal, setCareerGoal] = useState(initialValues?.careerGoal || "");
+  const [currentSkills, setCurrentSkills] = useState(
+    Array.isArray(initialValues?.currentSkills)
+      ? initialValues.currentSkills.join(", ")
+      : initialValues?.currentSkills || ""
+  );
+  const [experienceLevel, setExperienceLevel] = useState<"beginner" | "intermediate" | "advanced">(
+    initialValues?.experienceLevel || "beginner"
+  );
+  const [hoursPerWeek, setHoursPerWeek] = useState(initialValues?.hoursPerWeek || 15);
+  type DurationType = "1_month" | "3_months" | "6_months" | "12_months";
+  const [targetDuration, setTargetDuration] = useState<DurationType>(
+    (initialValues?.targetDuration as DurationType) || "3_months"
+  );
+  const [learningStyle, setLearningStyle] = useState<"project_based" | "theory_first" | "balanced" | "certification">(
+    initialValues?.learningStyle || "balanced"
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  // Sync initial values when user clicks a preset
-  useEffect(() => {
+  // Render-phase sync when initialValues prop changes
+  const [prevInitialValues, setPrevInitialValues] = useState(initialValues);
+  if (initialValues !== prevInitialValues) {
+    setPrevInitialValues(initialValues);
     if (initialValues) {
       if (initialValues.careerGoal) setCareerGoal(initialValues.careerGoal);
       if (initialValues.currentSkills) {
@@ -33,11 +46,12 @@ export function RoadmapForm({ onSubmit, isLoading, initialValues }: RoadmapFormP
       }
       if (initialValues.experienceLevel) setExperienceLevel(initialValues.experienceLevel);
       if (initialValues.hoursPerWeek) setHoursPerWeek(initialValues.hoursPerWeek);
-      if (initialValues.targetDuration) setTargetDuration(initialValues.targetDuration);
+      if (initialValues.targetDuration) setTargetDuration(initialValues.targetDuration as DurationType);
       if (initialValues.learningStyle) setLearningStyle(initialValues.learningStyle);
       setErrors({});
     }
-  }, [initialValues]);
+  }
+
 
   const validate = () => {
     const skillsArray = currentSkills
@@ -106,11 +120,11 @@ export function RoadmapForm({ onSubmit, isLoading, initialValues }: RoadmapFormP
     <form
       id="roadmap-generator-form"
       onSubmit={handleSubmit}
-      className="w-full max-w-4xl mx-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-6 sm:p-10 space-y-8"
+      className="w-full max-w-4xl mx-auto rounded-3xl bg-white dark:bg-slate-900 border border-[#EAEAEA] dark:border-slate-800 shadow-xl p-6 sm:p-10 space-y-8"
       noValidate
       aria-label="Career Roadmap Generator Form"
     >
-      <div className="border-b border-slate-100 dark:border-slate-800/80 pb-5">
+      <div className="border-b border-[#EAEAEA] dark:border-slate-800/80 pb-5">
         <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-semibold text-xs tracking-wider uppercase">
           <SparklesIcon className="w-4 h-4" />
           <span>Path Configuration</span>
@@ -142,10 +156,10 @@ export function RoadmapForm({ onSubmit, isLoading, initialValues }: RoadmapFormP
             }}
             onBlur={() => setTouched((prev) => ({ ...prev, careerGoal: true }))}
             placeholder="e.g. Full-Stack Engineer, AI Specialist, Cloud Architect"
-            className={`w-full px-4 py-3 rounded-xl border text-sm bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
+            className={`w-full px-4 py-3 rounded-xl border text-sm bg-[#FAFAF8] dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
               errors.careerGoal && touched.careerGoal
                 ? "border-red-500 focus:ring-red-400"
-                : "border-slate-200 dark:border-slate-700 focus:ring-indigo-500 focus:border-indigo-500"
+                : "border-[#EAEAEA] dark:border-slate-700 focus:ring-indigo-500 focus:border-indigo-500"
             }`}
             aria-invalid={Boolean(errors.careerGoal && touched.careerGoal)}
             aria-describedby={errors.careerGoal && touched.careerGoal ? "career-goal-error" : "career-goal-hint"}
@@ -182,10 +196,10 @@ export function RoadmapForm({ onSubmit, isLoading, initialValues }: RoadmapFormP
             }}
             onBlur={() => setTouched((prev) => ({ ...prev, currentSkills: true }))}
             placeholder="e.g. HTML, Basic JavaScript, Git, Python 101"
-            className={`w-full px-4 py-3 rounded-xl border text-sm bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
+            className={`w-full px-4 py-3 rounded-xl border text-sm bg-[#FAFAF8] dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all ${
               errors.currentSkills && touched.currentSkills
                 ? "border-red-500 focus:ring-red-400"
-                : "border-slate-200 dark:border-slate-700 focus:ring-indigo-500 focus:border-indigo-500"
+                : "border-[#EAEAEA] dark:border-slate-700 focus:ring-indigo-500 focus:border-indigo-500"
             }`}
             aria-invalid={Boolean(errors.currentSkills && touched.currentSkills)}
             aria-describedby={errors.currentSkills && touched.currentSkills ? "skills-error" : "skills-hint"}
@@ -234,7 +248,7 @@ export function RoadmapForm({ onSubmit, isLoading, initialValues }: RoadmapFormP
                   className={`relative p-3.5 rounded-xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
                     experienceLevel === level.id
                       ? "border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-950 dark:text-indigo-100 ring-2 ring-indigo-500/20"
-                      : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
+                      : "border-[#EAEAEA] dark:border-slate-800 bg-[#FAFAF8] dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -308,7 +322,7 @@ export function RoadmapForm({ onSubmit, isLoading, initialValues }: RoadmapFormP
                 e.target.value as "1_month" | "3_months" | "6_months" | "12_months"
               )
             }
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            className="w-full px-4 py-3 rounded-xl border border-[#EAEAEA] dark:border-slate-700 text-sm bg-[#FAFAF8] dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
             aria-label="Target roadmap duration"
           >
             <option value="1_month">1 Month (Sprint / Crash Course)</option>
@@ -337,7 +351,7 @@ export function RoadmapForm({ onSubmit, isLoading, initialValues }: RoadmapFormP
                 e.target.value as "project_based" | "theory_first" | "balanced" | "certification"
               )
             }
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            className="w-full px-4 py-3 rounded-xl border border-[#EAEAEA] dark:border-slate-700 text-sm bg-[#FAFAF8] dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
             aria-label="Learning style preference"
           >
             <option value="balanced">Balanced (Hands-on projects + Core fundamentals)</option>
@@ -349,7 +363,7 @@ export function RoadmapForm({ onSubmit, isLoading, initialValues }: RoadmapFormP
       </div>
 
       {/* Action / Submit Row */}
-      <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="pt-4 border-t border-[#EAEAEA] dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
           <TargetIcon className="w-4 h-4 text-emerald-500" />
           <span>Structured output verified with Zod & Anthropic Claude</span>

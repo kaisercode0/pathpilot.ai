@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pathpilot_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: pathpilot
+      POSTGRES_PASSWORD: pathpilot123
+      POSTGRES_DB: pathpilot_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pathpilot -d pathpilot_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pathpilot_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://pathpilot:pathpilot123@postgres:5432/pathpilot_db
+      JWT_SECRET: super-secret-jwt-key-change-in-production-min-32-chars-pathpilot
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      AI_PROVIDER: mock
+      FRONTEND_URL: http://localhost:3000
+      ENVIRONMENT: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

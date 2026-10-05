@@ -53,7 +53,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+      <body className="min-h-full flex flex-col font-sans bg-[#F7F5F0] dark:bg-slate-950 text-slate-900 dark:text-slate-100">
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>

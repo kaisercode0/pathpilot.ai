@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { EmptyState } from "@/components/EmptyState";
 import { RoadmapForm } from "@/components/RoadmapForm";
-import { RoadmapView } from "@/components/RoadmapView";
+import { DashboardView } from "@/components/DashboardView";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorMessage } from "@/components/ErrorMessage";
-import type { RoadmapRequest, RoadmapResponse } from "@/lib/schemas";
+import { validateRoadmapRelevance, type RoadmapRequest, type RoadmapResponse } from "@/lib/schemas";
 import type { CareerPreset } from "@/types/roadmap";
 import {
   getStoredActiveRoadmap,
@@ -19,28 +19,17 @@ import {
 import { generateCuratedFallbackRoadmap } from "@/lib/fallback-roadmaps";
 
 export default function Home() {
-  const [activeRoadmap, setActiveRoadmap] = useState<RoadmapResponse | null>(null);
-  const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
-  const [savedRoadmaps, setSavedRoadmaps] = useState<RoadmapResponse[]>([]);
+  const [savedRoadmaps, setSavedRoadmaps] = useState<RoadmapResponse[]>(() => getStoredSavedRoadmaps());
+  const [activeRoadmap, setActiveRoadmap] = useState<RoadmapResponse | null>(() => getStoredActiveRoadmap());
+  const [completedTaskIds, setCompletedTaskIds] = useState<string[]>(() => {
+    const active = getStoredActiveRoadmap();
+    return active ? getStoredCompletedTasks(active.id) : [];
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ message: string; details?: string } | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<Partial<RoadmapRequest> | null>(null);
   const [lastRequest, setLastRequest] = useState<RoadmapRequest | null>(null);
-  const [isClientLoaded, setIsClientLoaded] = useState(false);
 
-  // Initialize from LocalStorage
-  useEffect(() => {
-    setIsClientLoaded(true);
-    const storedActive = getStoredActiveRoadmap();
-    const storedHistory = getStoredSavedRoadmaps();
-    setSavedRoadmaps(storedHistory);
-
-    if (storedActive) {
-      setActiveRoadmap(storedActive);
-      const storedTasks = getStoredCompletedTasks(storedActive.id);
-      setCompletedTaskIds(storedTasks);
-    }
-  }, []);
 
   // Handle roadmap generation request
   const handleGenerateRoadmap = async (requestData: RoadmapRequest) => {
@@ -63,8 +52,13 @@ export default function Home() {
         );
       }
 
-      // Generation successful
+      // Generation successful - validate relevance before accepting
       const roadmap: RoadmapResponse = data;
+      const relevance = validateRoadmapRelevance(roadmap, requestData);
+      if (!relevance.valid) {
+        throw new Error(`Roadmap relevance validation failed: ${relevance.reason}`);
+      }
+
       setActiveRoadmap(roadmap);
       saveStoredActiveRoadmap(roadmap);
 
@@ -139,15 +133,15 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Load fallback directly
+  // Load fallback directly using user's actual selected input
   const handleLoadFallbackDirectly = () => {
     const fallbackInput: RoadmapRequest = lastRequest || {
-      careerGoal: "Full-Stack Web Developer",
-      currentSkills: ["HTML", "Basic JavaScript", "Git"],
-      experienceLevel: "beginner",
-      hoursPerWeek: 15,
-      targetDuration: "3_months",
-      learningStyle: "balanced",
+      careerGoal: selectedPreset?.careerGoal || "Cybersecurity & Security Operations Analyst",
+      currentSkills: selectedPreset?.currentSkills || ["Computer Networking", "Linux", "Bash"],
+      experienceLevel: selectedPreset?.experienceLevel || "beginner",
+      hoursPerWeek: selectedPreset?.hoursPerWeek || 12,
+      targetDuration: selectedPreset?.targetDuration || "6_months",
+      learningStyle: selectedPreset?.learningStyle || "certification",
     };
 
     const roadmap = generateCuratedFallbackRoadmap(fallbackInput);
@@ -158,8 +152,9 @@ export default function Home() {
     setSavedRoadmaps(getStoredSavedRoadmaps());
   };
 
+
   return (
-    <div className="min-h-screen flex flex-col justify-between">
+    <div className="min-h-screen flex flex-col justify-between bg-[#F7F5F0] dark:bg-slate-950">
       {/* Accessible Navbar */}
       <Navbar
         onReset={handleReset}
@@ -195,13 +190,16 @@ export default function Home() {
           </div>
         )}
 
-        {/* Active Roadmap View State */}
+        {/* Active Roadmap / Modern Student Dashboard State */}
         {!isLoading && !error && activeRoadmap && (
-          <RoadmapView
+          <DashboardView
             roadmap={activeRoadmap}
             completedTaskIds={completedTaskIds}
             onToggleTask={handleToggleTask}
             onReset={handleReset}
+            onOpenGenerator={() => {
+              setActiveRoadmap(null);
+            }}
           />
         )}
 
@@ -225,7 +223,7 @@ export default function Home() {
       </main>
 
       {/* Accessible Footer */}
-      <footer className="w-full border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+      <footer className="w-full border-t border-[#EAEAEA] dark:border-slate-800 bg-[#FAFAF8]/80 dark:bg-slate-950/50 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-800 dark:text-slate-200">

@@ -6,7 +6,6 @@ import {
   DownloadIcon,
   PrinterIcon,
   CheckIcon,
-  BookOpenIcon,
   SparklesIcon,
 } from "./icons/Icons";
 
